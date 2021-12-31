@@ -13,6 +13,8 @@ const io = require('socket.io')(server, {
 
 const chat = require('./models/chat');
 
+const { PORT = 3000 } = process.env;
+
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
@@ -31,9 +33,21 @@ io.on('connection', (socket) => {
     io.emit('usersOnline', users);
   });
 
+  socket.on('updateNickname', (user) => {
+    users[user.id].nickname = user.nickname;
+    io.emit('usersOnline', users);
+  });
+
   socket.on('message', async (userMessage) => {
     const { message, nickname } = userMessage;
     await chat.savedHistory({ nickname, message, timestamp });
     io.emit('message', `${timestamp} - ${nickname}: ${message}`);
   });
+
+  socket.on('disconnect', () => {
+    delete users[socket.id];
+    io.emit('usersOnline', users);
+  });
 });
+
+server.listen(PORT, () => console.log(`running on port ${PORT}`));
