@@ -10,3 +10,24 @@ const io = require('socket.io')(server, {
     methods: ['GET', 'POST'],
   },
 });
+
+const chat = require('./models/chat');
+
+app.set('view engine', 'ejs');
+app.set('views', './views');
+
+app.use(express.static(`${__dirname}/public`));
+
+app.get('/', (_req, res) => res.render('index'));
+
+const users = {};
+// ref. https://momentjs.com/
+const timestamp = moment().format('MMMM Do YYYY, h:mm:ss a');
+
+io.on('connection', (socket) => {
+  socket.on('message', async (userMessage) => {
+    const { message, nickname } = userMessage;
+    await chat.savedHistory({ nickname, message, timestamp });
+    io.emit('message', `${timestamp} - ${nickname}: ${message}`);
+  });
+});
