@@ -25,6 +25,12 @@ const users = {};
 const timestamp = moment().format('MMMM Do YYYY, h:mm:ss a');
 
 io.on('connection', (socket) => {
+  socket.on('newChatUser', async (nickname) => {
+    socket.emit('history', await chat.getHistory());
+    users[socket.id] = { nickname };
+    io.emit('usersOnline', users);
+  });
+
   socket.on('message', async (userMessage) => {
     const { message, nickname } = userMessage;
     await chat.savedHistory({ nickname, message, timestamp });
