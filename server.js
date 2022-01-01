@@ -24,7 +24,7 @@ app.get('/', (_req, res) => res.render('index'));
 
 const users = {};
 // ref. https://momentjs.com/
-const timestamp = moment().format('MMMM Do YYYY, h:mm:ss a');
+const timestamp = moment().format('DD-MM-YYYY h:mm:ss a');
 
 io.on('connection', (socket) => {
   socket.on('newChatUser', async (nickname) => {
@@ -38,10 +38,10 @@ io.on('connection', (socket) => {
     io.emit('usersOnline', users);
   });
 
-  socket.on('message', async (userMessage) => {
-    const { message, nickname } = userMessage;
-    await chat.savedHistory({ nickname, message, timestamp });
-    io.emit('message', `${timestamp} - ${nickname}: ${message}`);
+  socket.on('message', async (message) => {
+    const { chatMessage, nickname } = message;
+    await chat.savedHistory({ message: chatMessage, nickname, timestamp });
+    io.emit('message', `${timestamp} - ${nickname}: ${chatMessage}`);
   });
 
   socket.on('disconnect', () => {
